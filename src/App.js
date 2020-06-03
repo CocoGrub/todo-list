@@ -122,6 +122,7 @@ function App() {
     const visibleItems = searchItems(filterItems(state.allTodos, state.filter), searchInput);
     return (
         <div className="App">
+            <span>What need to do?</span>
             <form onSubmit={handleSubmit}>
                 <Input type={"text"} placeholder={"typo something"} value={addTodoInput} onChange={handleChange}/>
                 <Button style={{border:'1px solid green',height:"1.9rem"}} type={"submit"}>add</Button>
