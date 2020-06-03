@@ -1,37 +1,46 @@
 import React, {useReducer, useState} from 'react';
 import './App.css';
+import Button from "@material-ui/core/Button";
+import Input from "@material-ui/core/Input";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
+import Chip from "@material-ui/core/Chip";
 
 function App() {
 
     const initialState = {
-        allTodos: [{id: Date.now().toLocaleString(), text: 'drink coffee',complete:true}],
-        uncompleted:[],
-        completed:[],
+        allTodos: [{id: Date.now().toLocaleString(), text: 'drink coffee', complete: true}],
+        uncompleted: [],
+        completed: [],
         filter: 'all',
         search: ''
 
- }
+    }
+
     function reducer(state, action) {
         switch (action.type) {
             case "add":
-                return {...state,allTodos:[...state.allTodos,action.payload]}
+                return {...state, allTodos: [...state.allTodos, action.payload]}
             case "del":
-                return {...state,allTodos:[...state.allTodos.filter((x) => x.id !== action.payload)]}
-            case "filter":return {...state,filterState:[...state.allTodos.filter((x)=>x.text.includes(action.payload))]}
-            case "complete":return {...state,allTodos:[...state.allTodos.map((x)=>{
-                if(x.id===action.payload) {
-                    const z={...x}
-                    z.complete = !x.complete;
-                    return z
+                return {...state, allTodos: [...state.allTodos.filter((x) => x.id !== action.payload)]}
+            case "complete":
+                return {
+                    ...state, allTodos: [...state.allTodos.map((x) => {
+                        if (x.id === action.payload) {
+                            const z = {...x}
+                            z.complete = !x.complete;
+                            return z
+                        }
+                        return x
+                    })]
                 }
-return x
-                })]}
-            case 'showUnCompleted':return {...state,filterState: [...state.allTodos.filter((x)=>x.complete===false)]}
-            case 'showUnCompletedAndFiltered':return {...state,filterState: [...state.allTodos.filter((x)=>x.complete===false)]}
-            case 'filterCompleted':return {...state,filterState: [...state.filterState.filter((x)=>x.text.includes(action.payload))]}
-            case 'all':return {...state,filter:state.filter='all'}
-            case 'done':return {...state,filter:state.filter='done'}
-            case 'active':return {...state,filter:state.filter='active'}
+            case 'all':
+                return {...state, filter: state.filter = 'all'}
+            case 'done':
+                return {...state, filter: state.filter = 'done'}
+            case 'active':
+                return {...state, filter: state.filter = 'active'}
             default:
                 return state
         }
@@ -40,7 +49,6 @@ return x
     const [state, dispatch] = useReducer(reducer, initialState)
     const [addTodoInput, changeAddTodoInput] = useState("")
     const [searchInput, changeSearchInput] = useState("")
-    const [currentState, changeCurrentState] = useState("mainState")
     const handleChange = (x) => {
         changeAddTodoInput(x.target.value)
     }
@@ -48,7 +56,7 @@ return x
         const todo = {
             id: Date.now().toLocaleString(),
             text: addTodoInput,
-            complete:false
+            complete: false
         }
         dispatch({type: "add", payload: todo})
         x.preventDefault();
@@ -60,24 +68,29 @@ return x
         })
     }
 
-    const filterHandleChange=(input)=>{
-        console.log(input.target.value)
+    const filterHandleChange = (input) => {
         changeSearchInput(input.target.value)
-        // if(state.filterState.length){
-        //     dispatch({type: "filterCompleted", payload: input.target.value})
-        // }else {   dispatch({type: "filter", payload: input.target.value})}
-
-
-
     }
-    const complete=(x)=>{
-        console.log(x)
+
+    const complete = (x) => {
         dispatch({
-            type:'complete',
-            payload:x
+            type: 'complete',
+            payload: x
         })
     }
-    const filterItems=(items, filter)=> {
+
+    const TodoCount = () => {
+
+        const allTODO = state.allTodos.length
+        const completedTODO = state.allTodos.filter((x) => x.complete).length
+        const uncompletedTODO = allTODO - completedTODO
+
+        return [allTODO,completedTODO,uncompletedTODO]
+    }
+
+    const [allTODO,completedTODO,uncompletedTODO]=TodoCount()
+
+    const filterItems = (items, filter) => {
         if (filter === 'all') {
             return items;
         } else if (filter === 'active') {
@@ -86,7 +99,8 @@ return x
             return items.filter((item) => item.complete);
         }
     }
-   const searchItems=(items, search)=> {
+
+    const searchItems = (items, search) => {
         if (search.length === 0) {
             return items;
         }
@@ -95,51 +109,65 @@ return x
             return item.text.toLowerCase().indexOf(search.toLowerCase()) > -1;
         });
     }
-    // const visibleItems = searchItems(filterItems(items, filter), search);
 
-
-    const changeVisibleState=(x)=> {
-        if(x==='all'){
-    dispatch({type:'all'})
-        }else if(x==='active'){
-            dispatch({type:'active'})
-        }else if('done'){
-            dispatch({type:'done'})
+    const changeVisibleState = (x) => {
+        if (x === 'all') {
+            dispatch({type: 'all'})
+        } else if (x === 'active') {
+            dispatch({type: 'active'})
+        } else if ('done') {
+            dispatch({type: 'done'})
         }
     }
-    const visibleItems = searchItems(filterItems(state.allTodos, state.filter),searchInput);
+    const visibleItems = searchItems(filterItems(state.allTodos, state.filter), searchInput);
     return (
         <div className="App">
             <form onSubmit={handleSubmit}>
-                <input type={"text"} placeholder={"typo something"} value={addTodoInput} onChange={handleChange}/>
-                <button type={"submit"}>go</button>
+                <Input type={"text"} placeholder={"typo something"} value={addTodoInput} onChange={handleChange}/>
+                <Button style={{border:'1px solid green',height:"1.9rem"}} type={"submit"}>add</Button>
             </form>
-                <input type={"text"} placeholder={"search"} value={searchInput} onChange={filterHandleChange}/>
-                <br/>
-                <button onClick={()=>{changeVisibleState('all')}}>show all</button>
-                <button onClick={()=>{changeVisibleState('active')}}>uncompleted</button>
-                <button onClick={()=>{changeVisibleState('done')}}>completed</button>
+            <Input type={"text"} placeholder={"search"} value={searchInput} onChange={filterHandleChange}/>
+            <br/>
+            <Chip size="small" label={`all todos:${allTODO}`}></Chip><Chip size="small" label={`completed:${completedTODO}`}></Chip> <Chip size="small" label={`uncompleted:${uncompletedTODO}`}></Chip>
+            <hr/>
+            <ButtonGroup variant="text" color="primary" aria-label="text primary button group">
+            <Button onClick={() => {
+                changeVisibleState('all')
+            }}>show all
+            </Button>
 
-            <ul>
-               <List data={visibleItems} delElement={delElement} complete={complete}/>
-            </ul>
+            <Button onClick={() => {
+                changeVisibleState('done')
+            }}>completed
+            </Button>
+            <Button onClick={() => {
+                changeVisibleState('active')
+            }}>uncompleted
+            </Button>
+            </ButtonGroup>
+            <List  >
+                <TodoList data={visibleItems} delElement={delElement} complete={complete}/>
+                </List>
         </div>
     );
 }
 
 export default App;
 
-const List=({data,delElement,complete})=>{
-    return <ul> {data.map((v, k) => {
-        return <li style={{backgroundColor:v.complete?'green':'red'}} key={v.id}>{v.text}
-            <button onClick={() => {
-                delElement(v.id)
-            }}>del
-            </button>
-            <button onClick={() => {
+const TodoList = ({data, delElement, complete}) => {
+    return <>  {data.map((v, k) => {
+        return <ListItem   style={{justifyContent: "center", fontSize:'1.5rem'}} key={v.id}>
+            {/*<Button variant="contained" color="primary"></Button>*/}
+            <input type={"checkbox"} checked={v.complete} onChange={() => {
                 complete(v.id)
-            }}>complete
-            </button>
-        </li>
+            }}>
+            </input>
+            &nbsp;{v.text}&nbsp;
+            <Button style={{height:"1.2rem"}}  variant="contained" color="primary" onClick={() => {
+                delElement(v.id)
+            }}>del</Button>
+<br/>
+        </ListItem >
     })}
-    </ul>}
+    </>
+}
